@@ -1,0 +1,35 @@
+# Build outputs
+out/
+*.bin
+*.elf
+*.o
+*.lst
+*.log
+
+# Auto-generated resource files (rescomp generates these)
+res/resources.h
+res/resources.rs
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary files
+*.tmp
+*.bak
