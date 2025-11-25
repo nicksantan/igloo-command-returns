@@ -19,6 +19,8 @@ void initEnemies()
 
     // Initialize powerup truck
     powerup_truck.active = FALSE;
+    powerup_truck.spawn_pending = FALSE;
+    powerup_truck.spawn_timer = 0;
     powerup_truck.sprite = NULL;
 }
 
@@ -255,40 +257,57 @@ u8 shouldSpawnTruck(u16 wave)
 
 void spawnPowerupTruck()
 {
-    // Don't spawn if already active
-    if (powerup_truck.active) return;
+    // Don't spawn if already active or pending
+    if (powerup_truck.active || powerup_truck.spawn_pending) return;
 
-    // Random direction
-    u8 from_left = random() % 2;
+    // Set up delayed spawn with random delay 0-5 seconds (0-300 frames at 60fps)
+    powerup_truck.spawn_pending = TRUE;
+    powerup_truck.spawn_timer = random() % 301;  // 0 to 300 frames
 
-    powerup_truck.y = FIX16(TRUCK_Y);
-    powerup_truck.from_left = from_left;
-
-    if (from_left)
-    {
-        powerup_truck.x = FIX16(-20);  // Start off left edge
-        powerup_truck.vx = TRUCK_SPEED;  // Move right
-    }
-    else
-    {
-        powerup_truck.x = FIX16(SCREEN_WIDTH + 20);  // Start off right edge
-        powerup_truck.vx = -TRUCK_SPEED;  // Move left
-    }
-
-    powerup_truck.active = TRUE;
-
-    // Create sprite (flip horizontally if coming from right)
-    s16 sprite_x = (s16)(powerup_truck.x >> FIX16_FRAC_BITS) - 8;
-    s16 sprite_y = TRUCK_Y - 8;
-
-    powerup_truck.sprite = SPR_addSprite(&sprite_cannon,
-                                          sprite_x,
-                                          sprite_y,
-                                          TILE_ATTR(PAL1, 0, FALSE, from_left ? FALSE : TRUE));
+    // Store spawn direction for later
+    powerup_truck.from_left = random() % 2;
 }
 
 void updatePowerupTruck()
 {
+    // Handle spawn delay countdown
+    if (powerup_truck.spawn_pending)
+    {
+        if (powerup_truck.spawn_timer > 0)
+        {
+            powerup_truck.spawn_timer--;
+        }
+        else
+        {
+            // Time to spawn the truck!
+            powerup_truck.spawn_pending = FALSE;
+            powerup_truck.y = FIX16(TRUCK_Y);
+
+            if (powerup_truck.from_left)
+            {
+                powerup_truck.x = FIX16(-20);  // Start off left edge
+                powerup_truck.vx = TRUCK_SPEED;  // Move right
+            }
+            else
+            {
+                powerup_truck.x = FIX16(SCREEN_WIDTH + 20);  // Start off right edge
+                powerup_truck.vx = -TRUCK_SPEED;  // Move left
+            }
+
+            powerup_truck.active = TRUE;
+
+            // Create sprite (flip horizontally if coming from right)
+            s16 sprite_x = (s16)(powerup_truck.x >> FIX16_FRAC_BITS) - 8;
+            s16 sprite_y = TRUCK_Y - 8;
+
+            powerup_truck.sprite = SPR_addSprite(&sprite_cannon,
+                                                  sprite_x,
+                                                  sprite_y,
+                                                  TILE_ATTR(PAL1, 0, FALSE, powerup_truck.from_left ? FALSE : TRUE));
+        }
+        return;
+    }
+
     if (!powerup_truck.active) return;
 
     // Move truck

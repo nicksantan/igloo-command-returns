@@ -39,8 +39,8 @@
 #define CANNON_Y       (SCREEN_HEIGHT - 48)
 
 // Powerup truck constants
-#define TRUCK_SPEED FIX16(0.5)
-#define TRUCK_Y (SCREEN_HEIGHT - 32)
+#define TRUCK_SPEED FIX16(0.75)  // Increased by 50%
+#define TRUCK_Y (SCREEN_HEIGHT - 27)  // Moved down 5px from -32
 
 // Missile structure
 typedef struct {
@@ -82,6 +82,8 @@ typedef struct {
     fix16 vx;
     u8 active;
     u8 from_left;
+    u8 spawn_pending;  // TRUE if truck should spawn after delay
+    u16 spawn_timer;   // Frames until spawn (60 fps)
     Sprite* sprite;
 } PowerupTruck;
 
