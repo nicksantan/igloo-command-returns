@@ -22,5 +22,11 @@ SPRITE sprite_bomb "sprites/snowball.png" 1 1 FAST 0
 # Igloo is 16x16 (2x2 tiles) - reusing cannon sprite for now
 SPRITE sprite_igloo "sprites/cannon.png" 2 2 FAST 0
 
+# Polar bear is 24x16 (3x2 tiles) - using actual sprite
+SPRITE sprite_polarbear "sprites/polarbear.png" 3 2 FAST 0
+
+# Music
+XGM bgm_music "music/test.vgm" -1
+
 # Background image - removed for now
 # IMAGE bg_test "images/test-bg.png" FAST

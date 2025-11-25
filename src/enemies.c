@@ -22,6 +22,13 @@ void initEnemies()
     powerup_truck.spawn_pending = FALSE;
     powerup_truck.spawn_timer = 0;
     powerup_truck.sprite = NULL;
+
+    // Initialize polar bear
+    polar_bear.active = FALSE;
+    polar_bear.spawn_pending = FALSE;
+    polar_bear.spawn_timer = 0;
+    polar_bear.click_count = 0;
+    polar_bear.sprite = NULL;
 }
 
 void spawnWave()
@@ -328,5 +335,99 @@ void updatePowerupTruck()
     {
         // Update sprite position
         SPR_setPosition(powerup_truck.sprite, tx - 8, TRUCK_Y - 8);
+    }
+}
+
+u8 shouldSpawnPolarBear(u16 wave)
+{
+    // First polar bear on wave 4
+    if (wave < 4) return FALSE;
+
+    // Waves 4-20: every 4 waves (4, 8, 12, 16, 20)
+    if (wave <= 20)
+    {
+        return (wave % 4) == 0;
+    }
+
+    // After wave 20: every 5 waves (25, 30, 35...)
+    return (wave % 5) == 0;
+}
+
+void spawnPolarBear()
+{
+    // Don't spawn if already active or pending
+    if (polar_bear.active || polar_bear.spawn_pending) return;
+
+    // Set up delayed spawn with random delay 0-5 seconds (0-300 frames at 60fps)
+    polar_bear.spawn_pending = TRUE;
+    polar_bear.spawn_timer = random() % 301;  // 0 to 300 frames
+
+    // Store spawn direction for later
+    polar_bear.from_left = random() % 2;
+
+    // Reset click count for this appearance
+    polar_bear.click_count = 0;
+}
+
+void updatePolarBear()
+{
+    // Handle spawn delay countdown
+    if (polar_bear.spawn_pending)
+    {
+        if (polar_bear.spawn_timer > 0)
+        {
+            polar_bear.spawn_timer--;
+        }
+        else
+        {
+            // Time to spawn the polar bear!
+            polar_bear.spawn_pending = FALSE;
+            polar_bear.y = FIX16(POLAR_BEAR_Y);
+
+            if (polar_bear.from_left)
+            {
+                polar_bear.x = FIX16(-20);  // Start off left edge
+                polar_bear.vx = POLAR_BEAR_SPEED;  // Move right
+            }
+            else
+            {
+                polar_bear.x = FIX16(SCREEN_WIDTH + 20);  // Start off right edge
+                polar_bear.vx = -POLAR_BEAR_SPEED;  // Move left
+            }
+
+            polar_bear.active = TRUE;
+
+            // Create sprite (flip horizontally if coming from right)
+            s16 sprite_x = (s16)(polar_bear.x >> FIX16_FRAC_BITS) - 8;
+            s16 sprite_y = POLAR_BEAR_Y - 8;
+
+            polar_bear.sprite = SPR_addSprite(&sprite_polarbear,
+                                              sprite_x,
+                                              sprite_y,
+                                              TILE_ATTR(PAL1, 0, FALSE, polar_bear.from_left ? FALSE : TRUE));
+        }
+        return;
+    }
+
+    if (!polar_bear.active) return;
+
+    // Move polar bear
+    polar_bear.x = polar_bear.x + polar_bear.vx;
+
+    s16 px = (s16)(polar_bear.x >> FIX16_FRAC_BITS);
+
+    // Check if polar bear went off screen
+    if ((polar_bear.from_left && px > SCREEN_WIDTH + 20) ||
+        (!polar_bear.from_left && px < -20))
+    {
+        // Polar bear left screen
+        polar_bear.active = FALSE;
+        SPR_releaseSprite(polar_bear.sprite);
+        polar_bear.sprite = NULL;
+    }
+    else
+    {
+        // Update sprite position
+        SPR_setPosition(polar_bear.sprite, px - 8, POLAR_BEAR_Y - 8);
     }
 }

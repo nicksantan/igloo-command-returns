@@ -39,8 +39,15 @@
 #define CANNON_Y       (SCREEN_HEIGHT - 48)
 
 // Powerup truck constants
-#define TRUCK_SPEED FIX16(0.75)  // Increased by 50%
+#define TRUCK_SPEED FIX16(1.125)  // Increased by 50% again (was 0.75, now 1.125)
 #define TRUCK_Y (SCREEN_HEIGHT - 27)  // Moved down 5px from -32
+
+// Polar bear constants
+#define POLAR_BEAR_SPEED FIX16(0.6)  // Normal speed
+#define POLAR_BEAR_SPEED_BOOST FIX16(0.6)  // Speed boost per click (same as base speed)
+#define POLAR_BEAR_MAX_CLICKS 3  // Max clicks that give speed boost
+#define POLAR_BEAR_Y (SCREEN_HEIGHT - 32)  // Y position
+#define POLAR_BEAR_BASE_SCORE 200  // First click score
 
 // Missile structure
 typedef struct {
@@ -87,6 +94,18 @@ typedef struct {
     Sprite* sprite;
 } PowerupTruck;
 
+// Polar bear structure
+typedef struct {
+    fix16 x, y;
+    fix16 vx;
+    u8 active;
+    u8 from_left;
+    u8 spawn_pending;
+    u16 spawn_timer;
+    u8 click_count;  // Number of times clicked this appearance
+    Sprite* sprite;
+} PolarBear;
+
 // Global game state (extern declarations)
 extern u8 two_player_mode;
 extern u16 current_wave;
@@ -106,5 +125,6 @@ extern Enemy enemies[MAX_ENEMIES];
 extern Bomb bombs[MAX_BOMBS];
 extern Igloo igloos[NUM_IGLOOS];
 extern PowerupTruck powerup_truck;
+extern PolarBear polar_bear;
 
 #endif // COMMON_H

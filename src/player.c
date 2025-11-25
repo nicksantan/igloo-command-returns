@@ -1,5 +1,6 @@
 #include "player.h"
 #include "weapons.h"
+#include "collision.h"
 #include "resources.h"
 
 // Player crosshair positions
@@ -118,6 +119,9 @@ void handleInput()
     // Check for A button press (edge detection - only fire once per press)
     if ((joy1 & BUTTON_A) && !(prev_joy1 & BUTTON_A))
     {
+        // Check if clicking on polar bear first
+        checkPolarBearClick(crosshair1_x, crosshair1_y, 1);
+        // Then fire missile
         fireMissile(1);  // Player 1 fires from left cannon
     }
 
@@ -131,6 +135,9 @@ void handleInput()
         // Check for A button press (edge detection - only fire once per press)
         if ((joy2 & BUTTON_A) && !(prev_joy2 & BUTTON_A))
         {
+            // Check if clicking on polar bear first
+            checkPolarBearClick(crosshair2_x, crosshair2_y, 2);
+            // Then fire missile
             fireMissile(2);  // Player 2 fires from right cannon
         }
 

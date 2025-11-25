@@ -9,7 +9,7 @@
 #include "resources.h"
 
 // Global game state (definitions)
-u8 two_player_mode = TRUE;
+u8 two_player_mode = FALSE;
 u16 current_wave = 1;
 u8 enemies_spawned = 0;
 u8 wave_complete = FALSE;
@@ -27,6 +27,7 @@ Enemy enemies[MAX_ENEMIES];
 Bomb bombs[MAX_BOMBS];
 Igloo igloos[NUM_IGLOOS];
 PowerupTruck powerup_truck;
+PolarBear polar_bear;
 
 void initGame()
 {
@@ -50,6 +51,10 @@ void initGame()
     initPlayer();
     initWeapons();
     initEnemies();
+
+    // Start background music (loop infinitely)
+    XGM_setLoopNumber(-1);
+    XGM_startPlay(bgm_music);
 
     // Initialize igloos (5 evenly spaced along bottom, centered)
     s16 igloo_spacing = SCREEN_WIDTH / (NUM_IGLOOS + 1);
@@ -109,6 +114,9 @@ int main()
             // Update powerup truck
             updatePowerupTruck();
 
+            // Update polar bear
+            updatePolarBear();
+
             // Check collisions
             checkCollisions();
 
@@ -127,6 +135,12 @@ int main()
                 if (shouldSpawnTruck(current_wave))
                 {
                     spawnPowerupTruck();
+                }
+
+                // Check if we should spawn a polar bear on this wave
+                if (shouldSpawnPolarBear(current_wave))
+                {
+                    spawnPolarBear();
                 }
             }
 
