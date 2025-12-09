@@ -10,6 +10,9 @@ void drawHUD()
         if (igloos[i].alive) igloos_alive++;
     }
 
+    // Get active sprite count from SGDK
+    u16 sprite_count = SPR_getNumActiveSprite();
+
     if (two_player_mode)
     {
         // 2-player HUD: show both scores and ammo
@@ -19,6 +22,8 @@ void drawHUD()
         VDP_drawText(status, 1, 2);
         sprintf(status, "P2:%lu AMMO:%d", score_p2, ammo_p2);
         VDP_drawText(status, 1, 3);
+        sprintf(status, "SPRITES:%d/80", sprite_count);
+        VDP_drawText(status, 1, 4);
     }
     else
     {
@@ -27,6 +32,8 @@ void drawHUD()
         VDP_drawText(status, 1, 1);
         sprintf(status, "SCORE:%lu AMMO:%d", score_p1, ammo_p1);
         VDP_drawText(status, 1, 2);
+        sprintf(status, "SPRITES:%d/80", sprite_count);
+        VDP_drawText(status, 1, 3);
     }
 }
 

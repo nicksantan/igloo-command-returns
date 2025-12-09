@@ -17,8 +17,11 @@
 #define MISSILE_GRAVITY FIX16(0.02)
 
 // Enemy constants
-#define MAX_ENEMIES 5
+#define MAX_ENEMIES 7
+#define MAX_LARGE_ENEMIES 5
 #define ENEMY_SPEED FIX16(0.3)
+#define LARGE_ENEMY_HURT_DURATION 10  // Frames to show hurt sprite (1/6 second at 60fps)
+#define ENEMY_MIN_SPACING 40  // Minimum pixels between enemies when spawning
 
 // Bomb constants
 #define MAX_BOMBS 20
@@ -49,6 +52,10 @@
 #define POLAR_BEAR_Y (SCREEN_HEIGHT - 32)  // Y position
 #define POLAR_BEAR_BASE_SCORE 200  // First click score
 
+// Explosion constants
+#define MAX_EXPLOSIONS 10
+#define EXPLOSION_DURATION 15  // Frames to show explosion (0.25 seconds at 60fps)
+
 // Missile structure
 typedef struct {
     fix16 x, y;
@@ -65,6 +72,8 @@ typedef struct {
     fix16 vx;
     u8 active;
     u8 from_left;
+    s8 hp;
+    u8 hurt_timer;  // Frames to show hurt sprite (for large enemies)
     Sprite* sprite;
 } Enemy;
 
@@ -106,10 +115,19 @@ typedef struct {
     Sprite* sprite;
 } PolarBear;
 
+// Explosion structure
+typedef struct {
+    s16 x, y;
+    u8 active;
+    u8 timer;  // Frames remaining before removal
+    Sprite* sprite;
+} Explosion;
+
 // Global game state (extern declarations)
 extern u8 two_player_mode;
 extern u16 current_wave;
 extern u8 enemies_spawned;
+extern u8 large_enemies_spawned;
 extern u8 wave_complete;
 extern u8 game_over;
 extern u32 score_p1;
@@ -122,9 +140,11 @@ extern u32 next_bonus_threshold;
 // Global object pools (extern declarations)
 extern Missile missiles[MAX_MISSILES];
 extern Enemy enemies[MAX_ENEMIES];
+extern Enemy large_enemies[MAX_LARGE_ENEMIES];
 extern Bomb bombs[MAX_BOMBS];
 extern Igloo igloos[NUM_IGLOOS];
 extern PowerupTruck powerup_truck;
 extern PolarBear polar_bear;
+extern Explosion explosions[MAX_EXPLOSIONS];
 
 #endif // COMMON_H

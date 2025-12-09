@@ -7,13 +7,15 @@
 void initEnemies();
 void spawnWave();
 void updateEnemies();
+void updateLargeEnemies();
 void updateBombs();
+fix16 getEnemySpeedForWave(u16 wave);
 u8 shouldSpawnTruck(u16 wave);
 void spawnPowerupTruck();
 void updatePowerupTruck();
 u8 shouldSpawnPolarBear(u16 wave);
 void spawnPolarBear();
 void updatePolarBear();
-void applyBlastWave(s16 bx, s16 by);
+void applyBlastWave(s16 bx, s16 by, u8 player);
 
 #endif // ENEMIES_H

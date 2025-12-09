@@ -1,6 +1,7 @@
 #include "collision.h"
 #include "enemies.h"
 #include "scoring.h"
+#include "explosions.h"
 
 void checkCollisions()
 {
@@ -19,26 +20,94 @@ void checkCollisions()
                     s16 ex = (s16)(enemies[j].x >> FIX16_FRAC_BITS);
                     s16 ey = (s16)(enemies[j].y >> FIX16_FRAC_BITS);
 
-                    // Simple AABB collision (8px snowball vs 16px enemy)
-                    if (abs(mx - ex) < 12 && abs(my - ey) < 12)
+                    // Simple AABB collision (8px snowball vs 24x16px enemy)
+                    if (abs(mx - ex) < 16 && abs(my - ey) < 12)
                     {
-                        // Award points to the player who fired the missile
-                        if (missiles[i].player == 1)
-                            score_p1 += 100;
-                        else
-                            score_p2 += 100;
+                        // Reduce enemy HP by 2
+                        enemies[j].hp -= 2;
 
-                        // Check for bonus igloo earned
-                        checkBonusIgloo();
-
-                        // Hit! Destroy both
+                        // Destroy missile
                         missiles[i].active = FALSE;
                         SPR_releaseSprite(missiles[i].sprite);
                         missiles[i].sprite = NULL;
 
-                        enemies[j].active = FALSE;
-                        SPR_releaseSprite(enemies[j].sprite);
-                        enemies[j].sprite = NULL;
+                        // Check if enemy is defeated
+                        if (enemies[j].hp <= 0)
+                        {
+                            // Award points to the player who fired the missile
+                            if (missiles[i].player == 1)
+                                score_p1 += 100;
+                            else
+                                score_p2 += 100;
+
+                            // Check for bonus igloo earned
+                            checkBonusIgloo();
+
+                            // Spawn explosion at enemy position
+                            spawnExplosion(ex, ey);
+
+                            // Destroy enemy
+                            enemies[j].active = FALSE;
+                            SPR_releaseSprite(enemies[j].sprite);
+                            enemies[j].sprite = NULL;
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // Check snowball vs large enemy collisions
+    for (u8 i = 0; i < MAX_MISSILES; i++)
+    {
+        if (missiles[i].active)
+        {
+            s16 mx = (s16)(missiles[i].x >> FIX16_FRAC_BITS);
+            s16 my = (s16)(missiles[i].y >> FIX16_FRAC_BITS);
+
+            for (u8 j = 0; j < MAX_LARGE_ENEMIES; j++)
+            {
+                if (large_enemies[j].active)
+                {
+                    s16 ex = (s16)(large_enemies[j].x >> FIX16_FRAC_BITS);
+                    s16 ey = (s16)(large_enemies[j].y >> FIX16_FRAC_BITS);
+
+                    // Simple AABB collision (8px snowball vs 40x24px large enemy)
+                    if (abs(mx - ex) < 24 && abs(my - ey) < 16)
+                    {
+                        // Reduce large enemy HP by 2
+                        large_enemies[j].hp -= 2;
+
+                        // Show hurt sprite
+                        large_enemies[j].hurt_timer = LARGE_ENEMY_HURT_DURATION;
+
+                        // Destroy missile
+                        missiles[i].active = FALSE;
+                        SPR_releaseSprite(missiles[i].sprite);
+                        missiles[i].sprite = NULL;
+
+                        // Check if large enemy is defeated
+                        if (large_enemies[j].hp <= 0)
+                        {
+                            // Award points to the player who fired the missile (200 points for large enemy)
+                            if (missiles[i].player == 1)
+                                score_p1 += 200;
+                            else
+                                score_p2 += 200;
+
+                            // Check for bonus igloo earned
+                            checkBonusIgloo();
+
+                            // Spawn explosion at large enemy position
+                            spawnExplosion(ex, ey);
+
+                            // Destroy large enemy
+                            large_enemies[j].active = FALSE;
+                            SPR_releaseSprite(large_enemies[j].sprite);
+                            large_enemies[j].sprite = NULL;
+                        }
 
                         break;
                     }
@@ -74,6 +143,9 @@ void checkCollisions()
                         // Check for bonus igloo earned
                         checkBonusIgloo();
 
+                        // Spawn explosion at bomb position
+                        spawnExplosion(bx, by);
+
                         // Destroy missile
                         missiles[i].active = FALSE;
                         SPR_releaseSprite(missiles[i].sprite);
@@ -85,7 +157,7 @@ void checkCollisions()
                         bombs[j].sprite = NULL;
 
                         // Apply blast wave (can trigger chain reactions)
-                        applyBlastWave(bx, by);
+                        applyBlastWave(bx, by, missiles[i].player);
 
                         break;
                     }
@@ -109,6 +181,9 @@ void checkCollisions()
                     // Simple AABB collision (8px bomb vs 16px igloo)
                     if (abs(bx - igloos[j].x) < 12 && abs(by - igloos[j].y) < 12)
                     {
+                        // Spawn explosion at igloo position
+                        spawnExplosion(igloos[j].x, igloos[j].y);
+
                         // Hit! Destroy both
                         bombs[i].active = FALSE;
                         SPR_releaseSprite(bombs[i].sprite);
