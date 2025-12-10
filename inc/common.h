@@ -15,6 +15,8 @@
 #define MAX_MISSILES 30
 #define MISSILE_SPEED FIX16(3)
 #define MISSILE_GRAVITY FIX16(0.02)
+#define MISSILE_TYPE_NORMAL 0
+#define MISSILE_TYPE_FAST 1
 
 // Enemy constants
 #define MAX_ENEMIES 7
@@ -44,6 +46,9 @@
 // Powerup truck constants
 #define TRUCK_SPEED FIX16(1.125)  // Increased by 50% again (was 0.75, now 1.125)
 #define TRUCK_Y (SCREEN_HEIGHT - 27)  // Moved down 5px from -32
+#define TRUCK_ARROW_VY FIX16(-1.25)  // Upward velocity when arrow is released (half speed)
+#define TRUCK_ARROW_DISTANCE 30  // Distance in pixels the arrow travels upward
+#define TRUCK_ARROW_HOLD_TIME 30  // Frames to hold before disappearing (0.5 seconds at 60fps)
 
 // Polar bear constants
 #define POLAR_BEAR_SPEED FIX16(0.6)  // Normal speed
@@ -56,6 +61,12 @@
 #define MAX_EXPLOSIONS 10
 #define EXPLOSION_DURATION 15  // Frames to show explosion (0.25 seconds at 60fps)
 
+// Powerup constants
+#define TRIPLE_SHOT_DURATION 1800  // 30 seconds at 60fps
+#define TRIPLE_SHOT_ANGLE_COS 63329  // cos(15°) ≈ 0.9659 in fix16
+#define TRIPLE_SHOT_ANGLE_SIN 16965  // sin(15°) ≈ 0.2588 in fix16
+#define FAST_SHOT_DURATION 1800  // 30 seconds at 60fps
+
 // Missile structure
 typedef struct {
     fix16 x, y;
@@ -63,6 +74,7 @@ typedef struct {
     fix16 vx, vy;
     u8 active;
     u8 player;
+    u8 type;  // MISSILE_TYPE_NORMAL or MISSILE_TYPE_FAST
     Sprite* sprite;
 } Missile;
 
@@ -101,6 +113,13 @@ typedef struct {
     u8 spawn_pending;  // TRUE if truck should spawn after delay
     u16 spawn_timer;   // Frames until spawn (60 fps)
     Sprite* sprite;
+    Sprite* arrow_sprite;  // Arrow powerup indicator
+    u8 arrow_collected;    // TRUE if arrow has been clicked/collected
+    fix16 arrow_x;         // X position of arrow (when collected, stays fixed)
+    fix16 arrow_y;         // Y position of arrow (when collected and moving upward)
+    fix16 arrow_start_y;   // Starting Y position when arrow was collected
+    fix16 arrow_vy;        // Y velocity of arrow (when collected)
+    u8 arrow_hold_timer;   // Timer for holding at top before disappearing
 } PowerupTruck;
 
 // Polar bear structure
@@ -130,12 +149,22 @@ extern u8 enemies_spawned;
 extern u8 large_enemies_spawned;
 extern u8 wave_complete;
 extern u8 game_over;
+extern u8 game_paused;
 extern u32 score_p1;
 extern u32 score_p2;
 extern u16 ammo_p1;
 extern u16 ammo_p2;
+extern u16 megabombs;
 extern u8 bonus_igloos_queued;
 extern u32 next_bonus_threshold;
+extern u8 triple_shot_active_p1;
+extern u16 triple_shot_timer_p1;
+extern u8 triple_shot_active_p2;
+extern u16 triple_shot_timer_p2;
+extern u8 fast_shot_active_p1;
+extern u16 fast_shot_timer_p1;
+extern u8 fast_shot_active_p2;
+extern u16 fast_shot_timer_p2;
 
 // Global object pools (extern declarations)
 extern Missile missiles[MAX_MISSILES];

@@ -9,5 +9,7 @@ extern u8 active_missile_count;
 void initWeapons();
 void fireMissile(u8 player);
 void updateMissiles();
+void updatePowerups();
+void triggerMegabomb(u8 player);
 
 #endif // WEAPONS_H

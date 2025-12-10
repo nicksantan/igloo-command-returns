@@ -16,7 +16,7 @@ void drawHUD()
     if (two_player_mode)
     {
         // 2-player HUD: show both scores and ammo
-        sprintf(status, "WAVE:%02d IGLOOS:%d", current_wave, igloos_alive);
+        sprintf(status, "WAVE:%02d IGLOOS:%d BOMBS:%d", current_wave, igloos_alive, megabombs);
         VDP_drawText(status, 1, 1);
         sprintf(status, "P1:%lu AMMO:%d", score_p1, ammo_p1);
         VDP_drawText(status, 1, 2);
@@ -28,7 +28,7 @@ void drawHUD()
     else
     {
         // 1-player HUD: show score and ammo
-        sprintf(status, "WAVE:%02d IGLOOS:%d", current_wave, igloos_alive);
+        sprintf(status, "WAVE:%02d IGLOOS:%d BOMBS:%d", current_wave, igloos_alive, megabombs);
         VDP_drawText(status, 1, 1);
         sprintf(status, "SCORE:%lu AMMO:%d", score_p1, ammo_p1);
         VDP_drawText(status, 1, 2);

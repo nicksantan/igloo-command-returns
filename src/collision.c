@@ -241,3 +241,65 @@ void checkPolarBearClick(s16 crosshair_x, s16 crosshair_y, u8 player)
         }
     }
 }
+
+void checkPowerupTruckClick(s16 crosshair_x, s16 crosshair_y, u8 player)
+{
+    if (!powerup_truck.active) return;
+    if (powerup_truck.arrow_collected) return;  // Already collected
+
+    s16 tx = (s16)(powerup_truck.x >> FIX16_FRAC_BITS);
+    s16 ty = TRUCK_Y;
+
+    // Check if crosshair is over truck (24x24 sprite)
+    if (abs(crosshair_x - tx) < 12 && abs(crosshair_y - ty) < 12)
+    {
+        // Clicked on truck! Collect powerup
+        powerup_truck.arrow_collected = TRUE;
+        powerup_truck.arrow_x = powerup_truck.x;  // Fix arrow X position
+        powerup_truck.arrow_start_y = powerup_truck.arrow_y;  // Record starting Y
+        powerup_truck.arrow_vy = TRUCK_ARROW_VY;  // Start moving upward
+        powerup_truck.arrow_hold_timer = 0;  // Reset hold timer
+
+        // Randomly select one of three powerups
+        u8 powerup_type = random() % 3;
+
+        switch (powerup_type)
+        {
+            case 0:
+                // Powerup 1: Award 25 snowballs
+                if (player == 1)
+                    ammo_p1 += 25;
+                else
+                    ammo_p2 += 25;
+                break;
+
+            case 1:
+                // Powerup 2: Triple shot for 30 seconds
+                if (player == 1)
+                {
+                    triple_shot_active_p1 = TRUE;
+                    triple_shot_timer_p1 = TRIPLE_SHOT_DURATION;
+                }
+                else
+                {
+                    triple_shot_active_p2 = TRUE;
+                    triple_shot_timer_p2 = TRIPLE_SHOT_DURATION;
+                }
+                break;
+
+            case 2:
+                // Powerup 3: Fast shot for 30 seconds
+                if (player == 1)
+                {
+                    fast_shot_active_p1 = TRUE;
+                    fast_shot_timer_p1 = FAST_SHOT_DURATION;
+                }
+                else
+                {
+                    fast_shot_active_p2 = TRUE;
+                    fast_shot_timer_p2 = FAST_SHOT_DURATION;
+                }
+                break;
+        }
+    }
+}

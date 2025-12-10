@@ -49,6 +49,9 @@ void initPlayer()
 
 void updateCrosshair()
 {
+    // Don't update crosshair if game is paused
+    if (game_paused) return;
+
     // Player 1 input (JOY_1)
     u16 joy1 = JOY_readJoypad(JOY_1);
 
@@ -116,13 +119,31 @@ void handleInput()
     // Player 1 input
     u16 joy1 = JOY_readJoypad(JOY_1);
 
-    // Check for A button press (edge detection - only fire once per press)
-    if ((joy1 & BUTTON_A) && !(prev_joy1 & BUTTON_A))
+    // Check for Start button press (edge detection - toggle pause)
+    if ((joy1 & BUTTON_START) && !(prev_joy1 & BUTTON_START))
     {
-        // Check if clicking on polar bear first
-        checkPolarBearClick(crosshair1_x, crosshair1_y, 1);
-        // Then fire missile
-        fireMissile(1);  // Player 1 fires from left cannon
+        game_paused = !game_paused;
+    }
+
+    // Only process game input if not paused
+    if (!game_paused)
+    {
+        // Check for A button press (edge detection - only fire once per press)
+        if ((joy1 & BUTTON_A) && !(prev_joy1 & BUTTON_A))
+        {
+            // Check if clicking on powerup truck first
+            checkPowerupTruckClick(crosshair1_x, crosshair1_y, 1);
+            // Check if clicking on polar bear
+            checkPolarBearClick(crosshair1_x, crosshair1_y, 1);
+            // Then fire missile
+            fireMissile(1);  // Player 1 fires from left cannon
+        }
+
+        // Check for C button press (edge detection - trigger megabomb)
+        if ((joy1 & BUTTON_C) && !(prev_joy1 & BUTTON_C))
+        {
+            triggerMegabomb(1);  // Player 1 triggers megabomb
+        }
     }
 
     prev_joy1 = joy1;
@@ -132,13 +153,31 @@ void handleInput()
     {
         u16 joy2 = JOY_readJoypad(JOY_2);
 
-        // Check for A button press (edge detection - only fire once per press)
-        if ((joy2 & BUTTON_A) && !(prev_joy2 & BUTTON_A))
+        // Check for Start button press (edge detection - toggle pause)
+        if ((joy2 & BUTTON_START) && !(prev_joy2 & BUTTON_START))
         {
-            // Check if clicking on polar bear first
-            checkPolarBearClick(crosshair2_x, crosshair2_y, 2);
-            // Then fire missile
-            fireMissile(2);  // Player 2 fires from right cannon
+            game_paused = !game_paused;
+        }
+
+        // Only process game input if not paused
+        if (!game_paused)
+        {
+            // Check for A button press (edge detection - only fire once per press)
+            if ((joy2 & BUTTON_A) && !(prev_joy2 & BUTTON_A))
+            {
+                // Check if clicking on powerup truck first
+                checkPowerupTruckClick(crosshair2_x, crosshair2_y, 2);
+                // Check if clicking on polar bear
+                checkPolarBearClick(crosshair2_x, crosshair2_y, 2);
+                // Then fire missile
+                fireMissile(2);  // Player 2 fires from right cannon
+            }
+
+            // Check for C button press (edge detection - trigger megabomb)
+            if ((joy2 & BUTTON_C) && !(prev_joy2 & BUTTON_C))
+            {
+                triggerMegabomb(2);  // Player 2 triggers megabomb
+            }
         }
 
         prev_joy2 = joy2;

@@ -31,6 +31,12 @@ SPRITE sprite_igloo "sprites/cannon.png" 2 2 FAST 0
 # Polar bear is 24x16 (3x2 tiles) - using actual sprite
 SPRITE sprite_polarbear "sprites/polarbear.png" 3 2 FAST 0
 
+# Bonus truck is 24x24 (3x3 tiles) - animated spritesheet with 2 frames, changes every 2 game frames
+SPRITE sprite_truck "sprites/bonus-truck-sheet.png" 3 3 FAST 2
+
+# Bonus arrow is 24x24 (3x3 tiles) - appears on truck
+SPRITE sprite_truck_arrow "sprites/bonus-arrow.png" 3 3 FAST 0
+
 # Explosion is 16x16 (2x2 tiles)
 SPRITE sprite_explosion "sprites/explosion.png" 2 2 FAST 0
 

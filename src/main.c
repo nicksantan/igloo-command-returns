@@ -16,12 +16,22 @@ u8 enemies_spawned = 0;
 u8 large_enemies_spawned = 0;
 u8 wave_complete = FALSE;
 u8 game_over = FALSE;
+u8 game_paused = FALSE;
 u32 score_p1 = 0;
 u32 score_p2 = 0;
 u16 ammo_p1 = 0;
 u16 ammo_p2 = 0;
+u16 megabombs = 0;
 u8 bonus_igloos_queued = 0;
 u32 next_bonus_threshold = 5000;
+u8 triple_shot_active_p1 = FALSE;
+u16 triple_shot_timer_p1 = 0;
+u8 triple_shot_active_p2 = FALSE;
+u16 triple_shot_timer_p2 = 0;
+u8 fast_shot_active_p1 = FALSE;
+u16 fast_shot_timer_p1 = 0;
+u8 fast_shot_active_p2 = FALSE;
+u16 fast_shot_timer_p2 = 0;
 
 // Title screen state
 u8 title_screen_active = TRUE;
@@ -113,8 +123,8 @@ void initGame()
     // Load the crosshair sprite's palette into PAL1
     PAL_setPalette(PAL1, sprite_crosshair.palette->data, CPU);
 
-    // Load the large enemy hurt sprite's palette into PAL2 (has more colors than explosion)
-    PAL_setPalette(PAL2, sprite_plane_large_hurt.palette->data, CPU);
+    // Load the bonus truck sprite's palette into PAL2
+    PAL_setPalette(PAL2, sprite_truck.palette->data, CPU);
 
     // Initialize sprite engine
     SPR_init();
@@ -154,6 +164,9 @@ void initGame()
         ammo_p1 = 50;  // Single-player mode: start with 50
         ammo_p2 = 0;   // Player 2 not used in single-player
     }
+
+    // Initialize megabombs (shared pool for both modes)
+    megabombs = 3;
 }
 
 int main()
@@ -186,64 +199,71 @@ int main()
 
             if (!game_over)
             {
-                // Handle input
+                // Handle input (always check for pause button)
                 handleInput();
 
-                // Update crosshair position
-                updateCrosshair();
-
-                // Update missiles
-                updateMissiles();
-
-                // Update enemies
-                updateEnemies();
-
-                // Update large enemies
-                updateLargeEnemies();
-
-                // Update bombs
-                updateBombs();
-
-                // Update powerup truck
-                updatePowerupTruck();
-
-                // Update polar bear
-                updatePolarBear();
-
-                // Update explosions
-                updateExplosions();
-
-                // Check collisions
-                checkCollisions();
-
-                // If wave is complete, spawn next wave after a brief delay
-                if (wave_complete && enemies_spawned == 0 && large_enemies_spawned == 0)
+                // Only update game state if not paused
+                if (!game_paused)
                 {
-                    // Restore one bonus igloo if available and needed (at most one per wave)
-                    restoreBonusIgloo();
+                    // Update crosshair position
+                    updateCrosshair();
 
-                    // Check for game over AFTER attempting to restore bonus igloo
-                    checkGameOver();
+                    // Update missiles
+                    updateMissiles();
 
-                    spawnWave();
+                    // Update powerups
+                    updatePowerups();
 
-                    // Check if we should spawn a truck on this wave
-                    if (shouldSpawnTruck(current_wave))
+                    // Update enemies
+                    updateEnemies();
+
+                    // Update large enemies
+                    updateLargeEnemies();
+
+                    // Update bombs
+                    updateBombs();
+
+                    // Update powerup truck
+                    updatePowerupTruck();
+
+                    // Update polar bear
+                    updatePolarBear();
+
+                    // Update explosions
+                    updateExplosions();
+
+                    // Check collisions
+                    checkCollisions();
+
+                    // If wave is complete, spawn next wave after a brief delay
+                    if (wave_complete && enemies_spawned == 0 && large_enemies_spawned == 0)
                     {
-                        spawnPowerupTruck();
-                    }
+                        // Restore one bonus igloo if available and needed (at most one per wave)
+                        restoreBonusIgloo();
 
-                    // Check if we should spawn a polar bear on this wave
-                    if (shouldSpawnPolarBear(current_wave))
-                    {
-                        spawnPolarBear();
+                        // Check for game over AFTER attempting to restore bonus igloo
+                        checkGameOver();
+
+                        spawnWave();
+
+                        // Check if we should spawn a truck on this wave
+                        if (shouldSpawnTruck(current_wave))
+                        {
+                            spawnPowerupTruck();
+                        }
+
+                        // Check if we should spawn a polar bear on this wave
+                        if (shouldSpawnPolarBear(current_wave))
+                        {
+                            spawnPolarBear();
+                        }
                     }
                 }
 
-                // Display HUD
+                // Display HUD (always show even when paused)
                 drawHUD();
 
-                // Update all sprites (sends sprite data to VDP)
+                // Update all sprites (always render even when paused)
                 SPR_update();
             }
             else

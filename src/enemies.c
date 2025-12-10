@@ -677,15 +677,26 @@ void updatePowerupTruck()
             }
 
             powerup_truck.active = TRUE;
+            powerup_truck.arrow_collected = FALSE;
+            powerup_truck.arrow_y = FIX16(TRUCK_Y);
+            powerup_truck.arrow_vy = FIX16(0);
 
-            // Create sprite (flip horizontally if coming from right)
-            s16 sprite_x = (s16)(powerup_truck.x >> FIX16_FRAC_BITS) - 8;
-            s16 sprite_y = TRUCK_Y - 8;
+            // Create sprite (24x24, so offset by 12 horizontally and 12 vertically, flip horizontally based on direction)
+            s16 sprite_x = (s16)(powerup_truck.x >> FIX16_FRAC_BITS) - 12;
+            s16 sprite_y = TRUCK_Y - 12;
 
-            powerup_truck.sprite = SPR_addSprite(&sprite_cannon,
+            powerup_truck.sprite = SPR_addSprite(&sprite_truck,
                                                   sprite_x,
                                                   sprite_y,
-                                                  TILE_ATTR(PAL1, 0, FALSE, powerup_truck.from_left ? FALSE : TRUE));
+                                                  TILE_ATTR(PAL2, 0, FALSE, powerup_truck.from_left));
+            SPR_setDepth(powerup_truck.sprite, 0);
+
+            // Create arrow sprite on top of truck (24x24)
+            powerup_truck.arrow_sprite = SPR_addSprite(&sprite_truck_arrow,
+                                                        sprite_x,
+                                                        sprite_y,
+                                                        TILE_ATTR(PAL2, 0, FALSE, powerup_truck.from_left));
+            SPR_setDepth(powerup_truck.arrow_sprite, SPR_MIN_DEPTH);
         }
         return;
     }
@@ -697,6 +708,49 @@ void updatePowerupTruck()
 
     s16 tx = (s16)(powerup_truck.x >> FIX16_FRAC_BITS);
 
+    // Update arrow position
+    if (powerup_truck.arrow_sprite != NULL)
+    {
+        if (powerup_truck.arrow_collected)
+        {
+            // Arrow is moving upward independently with fixed X position
+            s16 ax = (s16)(powerup_truck.arrow_x >> FIX16_FRAC_BITS);
+            s16 ay = (s16)(powerup_truck.arrow_y >> FIX16_FRAC_BITS);
+            s16 start_y = (s16)(powerup_truck.arrow_start_y >> FIX16_FRAC_BITS);
+
+            // Calculate distance traveled
+            s16 distance_traveled = start_y - ay;
+
+            if (distance_traveled < TRUCK_ARROW_DISTANCE)
+            {
+                // Still moving upward
+                powerup_truck.arrow_y = powerup_truck.arrow_y + powerup_truck.arrow_vy;
+                ay = (s16)(powerup_truck.arrow_y >> FIX16_FRAC_BITS);
+            }
+            else
+            {
+                // Reached target distance, hold in place
+                powerup_truck.arrow_hold_timer++;
+
+                if (powerup_truck.arrow_hold_timer >= TRUCK_ARROW_HOLD_TIME)
+                {
+                    // Hold time complete, remove arrow
+                    SPR_releaseSprite(powerup_truck.arrow_sprite);
+                    powerup_truck.arrow_sprite = NULL;
+                    return;
+                }
+            }
+
+            // Update arrow sprite position (fixed X, moving/holding Y)
+            SPR_setPosition(powerup_truck.arrow_sprite, ax - 12, ay - 12);
+        }
+        else
+        {
+            // Arrow follows truck position
+            SPR_setPosition(powerup_truck.arrow_sprite, tx - 12, TRUCK_Y - 12);
+        }
+    }
+
     // Check if truck went off screen
     if ((powerup_truck.from_left && tx > SCREEN_WIDTH + 20) ||
         (!powerup_truck.from_left && tx < -20))
@@ -705,11 +759,18 @@ void updatePowerupTruck()
         powerup_truck.active = FALSE;
         SPR_releaseSprite(powerup_truck.sprite);
         powerup_truck.sprite = NULL;
+
+        // Clean up arrow sprite if it still exists
+        if (powerup_truck.arrow_sprite != NULL)
+        {
+            SPR_releaseSprite(powerup_truck.arrow_sprite);
+            powerup_truck.arrow_sprite = NULL;
+        }
     }
     else
     {
-        // Update sprite position
-        SPR_setPosition(powerup_truck.sprite, tx - 8, TRUCK_Y - 8);
+        // Update sprite position (24x24 sprite)
+        SPR_setPosition(powerup_truck.sprite, tx - 12, TRUCK_Y - 12);
     }
 }
 
